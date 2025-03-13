@@ -1,0 +1,78 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: Run Linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: npm install  # Adjust if using another package manager
+
+      - name: Run Linter
+        run: npm run lint  # Ensure you have a lint script in package.json
+
+  unit_tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Unit Tests
+        run: npm test -- --coverage  # Adjust based on your testing framework
+
+  integration_tests:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+    needs: unit_tests
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Integration Tests
+        run: npm run test:integration  # Ensure you have an integration test script
+
+  security_scan:
+    name: Run Security Scan
+    runs-on: ubuntu-latest
+    needs: integration_tests
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Run Security Scan (Example using npm audit)
+        run: npm audit --audit-level=high  # Adjust based on security tool used
+
+  deploy:
+    name: Deploy Application
+    runs-on: ubuntu-latest
+    needs: security_scan
+    if: success()
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Deploy to Production
+        run: echo "Deploying..."  # Replace with actual deployment commands
+
